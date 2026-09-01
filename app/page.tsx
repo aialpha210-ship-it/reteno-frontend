@@ -1,24 +1,14 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Cta, KnowledgePreview, SectionIntro } from "@/components/marketing/content";
+import { MarketingLayout } from "@/components/marketing/site-chrome";
+import { useCases } from "@/lib/mock-data";
 
-export default function Home() {
-  return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-6 py-24">
-      <p className="font-display text-sm italic text-muted">Reteno</p>
-
-      <h1 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">
-        Capture anywhere.
-        <br />
-        Learn in one place.
-      </h1>
-
-      <p className="mt-6 max-w-md text-base leading-relaxed text-muted">
-        Turn useful content from Instagram and YouTube into knowledge you can
-        actually retain — without opening another app.
-      </p>
-
-      <div className="mt-10">
-        <Button href="/dashboard">Get Started</Button>
-      </div>
-    </main>
-  );
-}
+export default function HomePage() { return <MarketingLayout>
+  <section className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[1fr_.82fr] lg:items-center"><div><p className="text-xs font-semibold tracking-[.18em] text-accent">PERSONAL LEARNING SYSTEM</p><h1 className="mt-4 max-w-3xl font-display text-5xl leading-[.98] sm:text-7xl">Turn what you scroll into what you know.</h1><p className="mt-6 max-w-xl text-lg leading-8 text-muted">Save useful Instagram Reels and YouTube videos through the apps you already use. Reteno turns them into structured knowledge you can revisit, search and actually remember.</p><div className="mt-8 flex flex-wrap gap-3"><Link href="/get-started" className="rounded-full bg-ink px-5 py-3 text-sm font-medium text-white">Get Started</Link><a href="#how-it-works" className="rounded-full border border-line bg-white px-5 py-3 text-sm font-medium">See how it works</a></div></div><div className="rounded-3xl border border-line bg-white/70 p-6 sm:p-9"><div className="grid grid-cols-2 gap-3"><div className="rounded-2xl bg-pink-50 p-5"><p className="text-xs text-muted">Capture with</p><p className="mt-2 font-display text-2xl">Instagram</p></div><div className="rounded-2xl bg-green-50 p-5"><p className="text-xs text-muted">Or share from</p><p className="mt-2 font-display text-2xl">WhatsApp</p></div></div><div className="mx-auto my-4 h-7 w-px bg-line"/><div className="rounded-2xl bg-accent p-5 text-center text-white"><p className="font-display text-3xl italic">Reteno</p><p className="mt-1 text-xs text-white/70">makes room for the important parts</p></div><div className="mx-auto my-4 h-7 w-px bg-line"/><div className="rounded-2xl border border-line bg-paper p-5"><p className="text-xs text-muted">Knowledge card</p><p className="mt-2 font-display text-2xl">A thought worth returning to</p></div></div></section>
+  <section className="border-y border-line bg-white/45"><div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24"><SectionIntro title="Your saved content shouldn’t become a graveyard." copy="Useful things deserve more than a bookmark you never see again."/><div className="mt-10 grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-line bg-paper p-7"><p className="text-xs font-semibold uppercase tracking-wider text-muted">Before Reteno</p><p className="mt-5 font-display text-3xl">Save <span className="text-muted">→ Forget → Never revisit</span></p></div><div className="rounded-2xl bg-ink p-7 text-white"><p className="text-xs font-semibold uppercase tracking-wider text-white/60">After Reteno</p><p className="mt-5 font-display text-3xl">Capture → Understand → Organize → Remember</p></div></div></div></section>
+  <section id="how-it-works" className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24"><SectionIntro eyebrow="A gentler system" title="Make a habit of keeping what matters."/><div className="mt-10 grid gap-5 md:grid-cols-3">{[["01", "Capture", "Send an Instagram Reel or YouTube video to Reteno."], ["02", "Reteno processes it", "Reteno extracts useful information and structures it into knowledge."], ["03", "Learn later", "Open Reteno to review, search and build on what you’ve learned."]].map(([number,title,copy])=><article key={number} className="rounded-2xl border border-line bg-white/65 p-6"><p className="text-sm text-accent">{number}</p><h3 className="mt-8 font-display text-3xl">{title}</h3><p className="mt-3 leading-7 text-muted">{copy}</p></article>)}</div></section>
+  <section className="border-y border-line bg-white/45"><div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24"><SectionIntro title="Capture without changing your habits."/><div className="mt-10 grid gap-5 md:grid-cols-2"><article className="rounded-2xl border border-line bg-white p-7"><p className="text-2xl">◉</p><h3 className="mt-5 font-display text-3xl">Send Reels through Instagram</h3><p className="mt-3 leading-7 text-muted">Found something worth remembering? Send the Reel to Reteno through Instagram DM.</p></article><article className="rounded-2xl border border-line bg-white p-7"><p className="text-2xl">◌</p><h3 className="mt-5 font-display text-3xl">Send YouTube videos through WhatsApp</h3><p className="mt-3 leading-7 text-muted">Share a YouTube video to Reteno on WhatsApp. No additional capture app required.</p></article></div></div></section>
+  <section className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[.8fr_1fr] lg:items-center"><SectionIntro eyebrow="From content to clarity" title="A useful idea, given a proper home." copy="Not a feed. Not another pile of links. A calm card you can understand in minutes and return to when it matters."/><KnowledgePreview/></section>
+  <section className="border-y border-line bg-white/45"><div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24"><SectionIntro title="Built for curious people."/><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{useCases.map(([name,copy])=><article key={name} className="rounded-2xl border border-line bg-white p-5"><h3 className="font-display text-2xl">{name}</h3><p className="mt-2 text-sm leading-6 text-muted">{copy}</p></article>)}</div><Link href="/use-cases" className="mt-7 inline-block text-sm font-medium underline underline-offset-4">Explore Use Cases</Link></div></section>
+  <Cta title="Stop saving content. Start keeping knowledge." copy="Reteno turns the useful things you discover into knowledge you can actually come back to."/>
+</MarketingLayout> }

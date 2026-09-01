@@ -16,8 +16,9 @@ const body = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Reteno AI",
+  title: { default: "Reteno | Capture anywhere. Learn in one place.", template: "%s" },
   description: "Capture anywhere. Learn in one place.",
+  openGraph: { title: "Reteno", description: "Capture anywhere. Learn in one place.", type: "website" },
 };
 
 export default function RootLayout({

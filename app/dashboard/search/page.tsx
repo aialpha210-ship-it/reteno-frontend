@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Search(){return <main className="grid min-h-screen place-items-center bg-paper px-5 text-center"><div><h1 className="font-display text-5xl">Search your knowledge.</h1><p className="mx-auto mt-4 max-w-lg leading-7 text-muted">Search is available in the library header for this prototype. A dedicated search workspace is coming next.</p><Link href="/dashboard" className="mt-7 inline-block rounded-full bg-ink px-5 py-3 text-sm text-white">Open library</Link></div></main>}
