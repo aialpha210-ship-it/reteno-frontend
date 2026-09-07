@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
-import { knowledgeItems } from "@/lib/mock-data";
+import { CaptureForm } from "@/components/capture/CaptureForm";
+import { CaptureStatusBadge } from "@/components/capture/CaptureStatusBadge";
+import { getCaptures } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
+import type { Capture } from "@/types";
 
 const navigation = [
   ["Home", "/dashboard"],
@@ -22,17 +25,45 @@ export function DashboardClient() {
   const [query, setQuery] = useState("");
   const [captureOpen, setCaptureOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const items = useMemo(
-    () => knowledgeItems.filter((item) =>
-      (filter === "All" || item.source === filter) &&
-      `${item.title} ${item.tag}`.toLowerCase().includes(query.toLowerCase())
-    ),
-    [filter, query]
-  );
+  const [captures, setCaptures] = useState<Capture[]>([]);
+  const [isFetchingCaptures, setIsFetchingCaptures] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/login");
   }, [isLoading, router, user]);
+
+  const fetchCaptures = useCallback(async () => {
+    setIsFetchingCaptures(true);
+    setFetchError(null);
+    try {
+      const data = await getCaptures();
+      setCaptures(data);
+    } catch (err: any) {
+      if (err.status === 401) {
+        setFetchError("Your session has expired. Please log in again.");
+        router.replace("/login");
+      } else {
+        setFetchError("Unable to load your captures.");
+      }
+    } finally {
+      setIsFetchingCaptures(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (user) {
+      fetchCaptures();
+    }
+  }, [user, fetchCaptures]);
+
+  const items = useMemo(
+    () => captures.filter((item) =>
+      (filter === "All" || item.source.toLowerCase() === filter.toLowerCase()) &&
+      `${item.title || ""} ${item.source_url}`.toLowerCase().includes(query.toLowerCase())
+    ),
+    [filter, query, captures]
+  );
 
   async function logOut() {
     if (isLoggingOut) return;
@@ -71,16 +102,45 @@ export function DashboardClient() {
 
         <section className="mt-10">
           <div className="flex flex-wrap items-end justify-between gap-5"><div><p className="text-xs font-semibold tracking-[.16em] text-accent">LIBRARY</p><h1 className="mt-2 font-display text-5xl">Your Knowledge</h1><p className="mt-2 text-muted">Everything useful you&apos;ve captured, in one place.</p></div><button onClick={() => setCaptureOpen((open) => !open)} className="rounded-full bg-ink px-5 py-3 text-sm font-medium text-white">+ Capture</button></div>
-          {captureOpen && <div className="mt-5 grid gap-3 rounded-2xl border border-line bg-white p-4 sm:grid-cols-3"><CaptureOption title="Instagram" copy="Send a Reel to Reteno on Instagram" /><CaptureOption title="YouTube" copy="Send a YouTube video to Reteno on WhatsApp" /><CaptureOption title="Web (coming soon)" copy="Paste a URL when web capture arrives." /></div>}
+          {captureOpen && (
+            <div className="mt-5 rounded-2xl border border-line bg-white p-4">
+              <CaptureForm onSuccess={() => { setCaptureOpen(false); fetchCaptures(); }} />
+            </div>
+          )}
           <div className="mt-9 flex flex-wrap gap-2">{["All", "Instagram", "YouTube"].map((source) => <button key={source} onClick={() => setFilter(source)} className={`rounded-full px-4 py-2 text-sm ${filter === source ? "bg-ink text-white" : "border border-line bg-white text-muted"}`}>{source}</button>)}<button className="ml-auto rounded-full border border-line bg-white px-4 py-2 text-sm text-muted">Newest</button></div>
-          <section className="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-5"><div className="flex items-start justify-between"><div><p className="text-sm font-medium">Your YouTube video is being processed...</p><p className="mt-1 text-sm text-muted">Transcribing - this usually takes a few moments</p></div><span className="text-xs text-muted">68%</span></div><div className="mt-4 h-1.5 overflow-hidden rounded-full bg-amber-100"><div className="h-full w-[68%] rounded-full bg-amber-500" /></div></section>
-          <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{items.map((item) => <Link href={`/dashboard/knowledge/${item.id}`} key={item.id} className="group overflow-hidden rounded-2xl border border-line bg-white transition hover:-translate-y-0.5 hover:shadow-md"><div className={`h-28 bg-gradient-to-br ${item.thumbnail} p-4`}><span className="rounded-full bg-white/80 px-2 py-1 text-xs">{item.source}</span></div><div className="p-5"><div className="flex justify-between text-xs text-muted"><span>{item.tag}</span><span>{item.date}</span></div><h2 className="mt-3 font-display text-2xl leading-tight group-hover:underline">{item.title}</h2><p className="mt-3 text-sm leading-6 text-muted">{item.summary}</p></div></Link>)}</div>
+
+          <div className="mt-7">
+            {isFetchingCaptures ? (
+              <p className="text-sm text-muted">Loading your captures...</p>
+            ) : fetchError ? (
+              <p className="text-sm text-red-500">{fetchError}</p>
+            ) : captures.length === 0 ? (
+              <p className="text-sm text-muted">You haven&apos;t captured anything yet.</p>
+            ) : items.length === 0 ? (
+              <p className="text-sm text-muted">No captures match your search.</p>
+            ) : (
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {items.map((item) => (
+                  <Link href={`/dashboard/knowledge/${item.id}`} key={item.id} className="group overflow-hidden rounded-2xl border border-line bg-white transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div className={`h-28 bg-gradient-to-br from-gray-100 to-gray-50 p-4`}>
+                      <span className="rounded-full bg-white/80 px-2 py-1 text-xs capitalize">{item.source}</span>
+                    </div>
+                    <div className="p-5">
+                      <div className="flex justify-between items-center text-xs text-muted">
+                        <CaptureStatusBadge status={item.status} />
+                        <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <h2 className="mt-3 font-display text-xl leading-tight group-hover:underline truncate" title={item.title || item.source_url}>
+                        {item.title || item.source_url}
+                      </h2>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       </main>
     </div>
   );
-}
-
-function CaptureOption({ title, copy }: { title: string; copy: string }) {
-  return <div><p className="font-medium">{title}</p><p className="mt-1 text-xs text-muted">{copy}</p></div>;
 }

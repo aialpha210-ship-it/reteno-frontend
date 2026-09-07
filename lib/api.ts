@@ -63,3 +63,16 @@ export function getHealth(): Promise<HealthResponse> {
 export function getDetailedHealth(): Promise<DetailedHealthResponse> {
   return apiFetch<DetailedHealthResponse>("/api/v1/health/detailed", { cache: "no-store" });
 }
+
+import type { Capture } from "@/types";
+
+export function getCaptures(): Promise<Capture[]> {
+  return apiFetch<Capture[]>("/api/captures", { cache: "no-store" });
+}
+
+export function createCapture(source_url: string): Promise<Capture> {
+  return apiFetch<Capture>("/api/captures", {
+    method: "POST",
+    body: JSON.stringify({ source_url }),
+  });
+}
