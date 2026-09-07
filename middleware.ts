@@ -10,13 +10,20 @@ export async function middleware(request: NextRequest) {
   const supabase = createServerClient(url, publishableKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
-      setAll: (cookiesToSet) => {
+      setAll: (
+        cookiesToSet: {
+          name: string;
+          value: string;
+          options: any;
+        }[]
+      ) => {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
     },
   });
+  
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
@@ -25,6 +32,7 @@ export async function middleware(request: NextRequest) {
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
+  
   return response;
 }
 
