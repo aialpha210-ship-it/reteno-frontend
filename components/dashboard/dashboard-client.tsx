@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { knowledgeItems } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
 
 const navigation = [
   ["Home", "/dashboard"],
@@ -13,9 +16,12 @@ const navigation = [
 ] as const;
 
 export function DashboardClient() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
   const [filter, setFilter] = useState("All");
   const [query, setQuery] = useState("");
   const [captureOpen, setCaptureOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const items = useMemo(
     () => knowledgeItems.filter((item) =>
       (filter === "All" || item.source === filter) &&
@@ -23,6 +29,28 @@ export function DashboardClient() {
     ),
     [filter, query]
   );
+
+  useEffect(() => {
+    if (!isLoading && !user) router.replace("/login");
+  }, [isLoading, router, user]);
+
+  async function logOut() {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await createClient().auth.signOut();
+    } finally {
+      router.replace("/login");
+      router.refresh();
+    }
+  }
+
+  if (isLoading || !user) {
+    return <main className="grid min-h-screen place-items-center bg-[#fbfaf7] text-sm text-muted" role="status">Checking your session…</main>;
+  }
+
+  const displayName = user.user_metadata.full_name || user.email?.split("@")[0] || "Account";
+  const initials = String(displayName).split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <div className="min-h-screen bg-[#fbfaf7] lg:pl-64">
@@ -32,13 +60,13 @@ export function DashboardClient() {
           {navigation.map(([name, href]) => <Link key={name} href={href} className={`block rounded-xl px-3 py-2 text-sm ${name === "Home" ? "bg-accent-soft text-accent" : "text-muted hover:bg-paper"}`}>{name}</Link>)}
         </nav>
         <div className="hidden rounded-xl bg-paper p-3 lg:block"><p className="text-xs text-muted">Free plan</p><p className="mt-1 text-sm font-medium">12 of 15 captures left</p><button className="mt-3 text-xs font-medium text-accent">Upgrade plan</button></div>
-        <div className="hidden items-center gap-2 pt-4 lg:flex"><span className="grid h-8 w-8 place-items-center rounded-full bg-amber-200 text-xs">DS</span><span className="text-sm">Dipanshi</span></div>
+        <div className="hidden items-center gap-2 pt-4 lg:flex"><span className="grid h-8 w-8 place-items-center rounded-full bg-amber-200 text-xs">{initials}</span><div className="min-w-0"><span className="block truncate text-sm">{displayName}</span><button onClick={logOut} disabled={isLoggingOut} className="text-xs text-muted hover:text-ink disabled:opacity-60">{isLoggingOut ? "Logging out…" : "Log out"}</button></div></div>
       </aside>
 
       <main className="mx-auto max-w-7xl px-5 pb-24 pt-6 sm:px-8 lg:px-12 lg:pb-12">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
           <label className="order-2 flex min-w-[240px] flex-1 items-center gap-2 rounded-xl border border-line bg-white px-3 py-2 sm:order-1 sm:max-w-md"><span className="text-muted">Search</span><input aria-label="Search your knowledge" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search your knowledge..." className="w-full bg-transparent text-sm outline-none placeholder:text-muted" /></label>
-          <div className="order-1 flex items-center gap-3 sm:order-2"><button className="hidden rounded-full border border-line px-4 py-2 text-sm sm:block">Ask Reteno</button><span className="grid h-9 w-9 place-items-center rounded-full bg-amber-200 text-xs lg:hidden">DS</span></div>
+          <div className="order-1 flex items-center gap-3 sm:order-2"><button className="hidden rounded-full border border-line px-4 py-2 text-sm sm:block">Ask Reteno</button><button onClick={logOut} disabled={isLoggingOut} className="grid h-9 w-9 place-items-center rounded-full bg-amber-200 text-xs lg:hidden" aria-label="Log out">{isLoggingOut ? "…" : initials}</button></div>
         </header>
 
         <section className="mt-10">

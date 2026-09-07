@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/config";
+import { createClient } from "@/lib/supabase/client";
 
 export class ApiError extends Error {
   status: number;
@@ -16,10 +17,14 @@ export class ApiError extends Error {
  * Those are added alongside the features that need them.
  */
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const accessToken = typeof window === "undefined"
+    ? undefined
+    : (await createClient().auth.getSession()).data.session?.access_token;
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...init?.headers,
     },
   });
