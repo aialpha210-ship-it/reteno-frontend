@@ -19,9 +19,7 @@ export function createClient() {
         cookiesToSet: {
           name: string;
           value: string;
-          options: {
-            [key: string]: unknown;
-          };
+          options?: Record<string, unknown>;
         }[]
       ) => {
         try {
