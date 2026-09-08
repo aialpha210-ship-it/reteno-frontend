@@ -26,6 +26,7 @@ export function DashboardClient() {
   const [captureOpen, setCaptureOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [captures, setCaptures] = useState<Capture[]>([]);
+  const [totalCaptures, setTotalCaptures] = useState<number>(0);
   const [isFetchingCaptures, setIsFetchingCaptures] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -38,7 +39,8 @@ export function DashboardClient() {
     setFetchError(null);
     try {
       const data = await getCaptures();
-      setCaptures(data);
+      setCaptures(data?.items || []);
+      setTotalCaptures(data?.total || 0);
     } catch (err: any) {
       if (err.status === 401) {
         setFetchError("Your session has expired. Please log in again.");

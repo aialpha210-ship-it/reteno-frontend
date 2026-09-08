@@ -66,8 +66,13 @@ export function getDetailedHealth(): Promise<DetailedHealthResponse> {
 
 import type { Capture } from "@/types";
 
-export function getCaptures(): Promise<Capture[]> {
-  return apiFetch<Capture[]>("/api/v1/captures", { cache: "no-store" });
+export type CapturesResponse = {
+  items: Capture[];
+  total: number;
+};
+
+export function getCaptures(): Promise<CapturesResponse> {
+  return apiFetch<CapturesResponse>("/api/v1/captures", { cache: "no-store" });
 }
 
 export function createCapture(source_url: string): Promise<Capture> {
