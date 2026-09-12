@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { createCapture } from "@/lib/api";
-import type { Capture } from "@/types";
+import { useRouter } from "next/navigation";
+import { ingestContent } from "@/lib/api";
+import type { Capture, ContentPlatform } from "@/types";
 
 type CaptureFormProps = {
   onSuccess?: (capture: Capture) => void;
 };
 
 export function CaptureForm({ onSuccess }: CaptureFormProps) {
+  const router = useRouter();
   const [url, setUrl] = useState("");
+  const [platform, setPlatform] = useState<ContentPlatform | "auto">("auto");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,18 +26,40 @@ export function CaptureForm({ onSuccess }: CaptureFormProps) {
       return;
     }
 
-    // Basic YouTube URL validation
+    const trimmedUrl = url.trim();
+    let detectedPlatform: ContentPlatform | null = null;
+
     const youtubeRegex = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be|youtube\.com\/shorts)\/.+$/;
-    if (!youtubeRegex.test(url.trim())) {
-      setError("Please enter a valid YouTube URL. Other formats are coming soon!");
-      return;
+    const instagramRegex = /^(https?\:\/\/)?((www\.)?instagram\.com)\/.+$/;
+
+    if (platform === "auto") {
+      if (youtubeRegex.test(trimmedUrl)) {
+        detectedPlatform = "youtube";
+      } else if (instagramRegex.test(trimmedUrl)) {
+        detectedPlatform = "instagram";
+      } else {
+        setError("Could not automatically detect platform. Please select YouTube or Instagram, or check your URL.");
+        return;
+      }
+    } else {
+      detectedPlatform = platform;
+      if (platform === "youtube" && !youtubeRegex.test(trimmedUrl)) {
+         setError("Please enter a valid YouTube URL.");
+         return;
+      }
+      if (platform === "instagram" && !instagramRegex.test(trimmedUrl)) {
+         setError("Please enter a valid Instagram URL.");
+         return;
+      }
     }
 
     setIsLoading(true);
     try {
-      const newCapture = await createCapture(url.trim());
+      const response = await ingestContent(trimmedUrl, detectedPlatform!);
       setUrl("");
-      onSuccess?.(newCapture);
+      setPlatform("auto");
+      // Use the newly created ingestion flow component route
+      router.push(`/dashboard/knowledge/${response.content_id}`);
     } catch (err: any) {
       if (err.status === 401) {
         setError("Your session has expired. Please log in again.");
@@ -61,13 +86,27 @@ export function CaptureForm({ onSuccess }: CaptureFormProps) {
             id="capture-url"
             type="url"
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste a YouTube URL"
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setError(null);
+            }}
+            placeholder="Paste a YouTube or Instagram URL"
             className="flex-1 rounded-md border border-line bg-white px-3 py-2 text-sm outline-none placeholder:text-muted focus-visible:border-accent"
             disabled={isLoading}
           />
+          <select
+            value={platform}
+            onChange={(e) => setPlatform(e.target.value as any)}
+            className="rounded-md border border-line bg-white px-3 py-2 text-sm outline-none focus-visible:border-accent"
+            disabled={isLoading}
+            aria-label="Platform"
+          >
+            <option value="auto">Auto Detect</option>
+            <option value="youtube">YouTube</option>
+            <option value="instagram">Instagram</option>
+          </select>
           <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-            {isLoading ? "Adding..." : "Capture"}
+            {isLoading ? "Analyzing..." : "Analyze"}
           </Button>
         </div>
       </div>
