@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { ingestContent } from "@/lib/api";
+import { createCapture } from "@/lib/api";
 import type { Capture, ContentPlatform } from "@/types";
 
 type CaptureFormProps = {
@@ -55,11 +55,11 @@ export function CaptureForm({ onSuccess }: CaptureFormProps) {
 
     setIsLoading(true);
     try {
-      const response = await ingestContent(trimmedUrl, detectedPlatform!);
+      const response = await createCapture(trimmedUrl);
       setUrl("");
       setPlatform("auto");
       // Use the newly created ingestion flow component route
-      router.push(`/dashboard/knowledge/${response.content_id}`);
+      router.push(`/dashboard/knowledge/${response.id}`);
     } catch (err: any) {
       if (err.status === 401) {
         setError("Your session has expired. Please log in again.");

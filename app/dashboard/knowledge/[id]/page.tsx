@@ -108,9 +108,9 @@ export default function KnowledgeDetail() {
             <Button onClick={async () => {
                 if (content.source_url) {
                     try {
-                        const { ingestContent } = await import("@/lib/api");
-                        const res = await ingestContent(content.source_url, content.source_platform || "auto");
-                        router.push(`/dashboard/knowledge/${res.content_id}`);
+                        const { createCapture } = await import("@/lib/api");
+                        const res = await createCapture(content.source_url);
+                        router.push(`/dashboard/knowledge/${res.id}`);
                     } catch (e) {
                         router.push("/dashboard");
                     }
