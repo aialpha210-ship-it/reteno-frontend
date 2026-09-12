@@ -21,10 +21,12 @@ describe('CaptureForm', () => {
   })
 
   it('1. YouTube URL submission', async () => {
-    vi.spyOn(api, 'ingestContent').mockResolvedValueOnce({
-      content_id: 'test-youtube-id',
+    vi.spyOn(api, 'createCapture').mockResolvedValueOnce({
+      id: 'test-youtube-id',
       status: 'PENDING',
-      source_platform: 'youtube'
+      source: 'youtube',
+      source_url: 'https://www.youtube.com/watch?v=123',
+      created_at: '2023-01-01'
     })
 
     render(<CaptureForm />)
@@ -35,16 +37,18 @@ describe('CaptureForm', () => {
     fireEvent.click(button)
 
     await waitFor(() => {
-      expect(api.ingestContent).toHaveBeenCalledWith('https://www.youtube.com/watch?v=123', 'youtube')
+      expect(api.createCapture).toHaveBeenCalledWith('https://www.youtube.com/watch?v=123')
       expect(mockPush).toHaveBeenCalledWith('/dashboard/knowledge/test-youtube-id')
     })
   })
 
   it('2. Instagram URL submission', async () => {
-    vi.spyOn(api, 'ingestContent').mockResolvedValueOnce({
-      content_id: 'test-instagram-id',
+    vi.spyOn(api, 'createCapture').mockResolvedValueOnce({
+      id: 'test-instagram-id',
       status: 'PENDING',
-      source_platform: 'instagram'
+      source: 'instagram',
+      source_url: 'https://www.instagram.com/p/123',
+      created_at: '2023-01-01'
     })
 
     render(<CaptureForm />)
@@ -55,16 +59,18 @@ describe('CaptureForm', () => {
     fireEvent.click(button)
 
     await waitFor(() => {
-      expect(api.ingestContent).toHaveBeenCalledWith('https://www.instagram.com/p/123', 'instagram')
+      expect(api.createCapture).toHaveBeenCalledWith('https://www.instagram.com/p/123')
       expect(mockPush).toHaveBeenCalledWith('/dashboard/knowledge/test-instagram-id')
     })
   })
 
   it('3. Platform detection/selection', async () => {
-    vi.spyOn(api, 'ingestContent').mockResolvedValueOnce({
-      content_id: 'test-selected-id',
+    vi.spyOn(api, 'createCapture').mockResolvedValueOnce({
+      id: 'test-selected-id',
       status: 'PENDING',
-      source_platform: 'youtube'
+      source: 'youtube',
+      source_url: 'https://www.youtube.com/watch?v=123',
+      created_at: '2023-01-01'
     })
 
     render(<CaptureForm />)
@@ -77,7 +83,7 @@ describe('CaptureForm', () => {
     fireEvent.click(button)
 
     await waitFor(() => {
-      expect(api.ingestContent).toHaveBeenCalledWith('https://www.youtube.com/watch?v=123', 'youtube')
+      expect(api.createCapture).toHaveBeenCalledWith('https://www.youtube.com/watch?v=123')
     })
   })
 
@@ -190,10 +196,12 @@ describe('KnowledgeDetail Processing States', () => {
       created_at: '2023-01-01'
     })
 
-    const ingestMock = vi.spyOn(api, 'ingestContent').mockResolvedValue({
-        content_id: 'new-retry-id',
+    const captureMock = vi.spyOn(api, 'createCapture').mockResolvedValue({
+        id: 'new-retry-id',
         status: 'PENDING',
-        source_platform: 'youtube'
+        source: 'youtube',
+        source_url: 'https://test',
+        created_at: '2023-01-01'
     });
 
     render(<KnowledgeDetail />)
@@ -201,7 +209,7 @@ describe('KnowledgeDetail Processing States', () => {
     fireEvent.click(retryButton)
 
     await waitFor(() => {
-        expect(ingestMock).toHaveBeenCalledWith('https://test', 'youtube')
+        expect(captureMock).toHaveBeenCalledWith('https://test')
         expect(mockPush).toHaveBeenCalledWith('/dashboard/knowledge/new-retry-id')
     })
   })
@@ -299,10 +307,12 @@ describe('KnowledgeDetail Processing States', () => {
   })
 
   it('17. Existing YouTube functionality remains intact', async () => {
-    vi.spyOn(api, 'ingestContent').mockResolvedValue({
-      content_id: 'test-youtube-id',
+    vi.spyOn(api, 'createCapture').mockResolvedValue({
+      id: 'test-youtube-id',
       status: 'PENDING',
-      source_platform: 'youtube'
+      source: 'youtube',
+      source_url: 'https://www.youtube.com/watch?v=youtube_functionality',
+      created_at: '2023-01-01'
     })
 
     render(<CaptureForm />)
@@ -314,7 +324,7 @@ describe('KnowledgeDetail Processing States', () => {
     fireEvent.click(button)
 
     await waitFor(() => {
-      expect(api.ingestContent).toHaveBeenCalledWith('https://www.youtube.com/watch?v=youtube_functionality', 'youtube')
+      expect(api.createCapture).toHaveBeenCalledWith('https://www.youtube.com/watch?v=youtube_functionality')
       expect(mockPush).toHaveBeenCalledWith('/dashboard/knowledge/test-youtube-id')
     })
   })

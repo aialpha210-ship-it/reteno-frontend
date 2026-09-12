@@ -82,19 +82,6 @@ export function createCapture(source_url: string): Promise<Capture> {
   });
 }
 
-export type ContentIngestResponse = {
-  content_id: string;
-  status: string;
-  source_platform: string;
-};
-
-export function ingestContent(source_url: string, source_platform: string): Promise<ContentIngestResponse> {
-  return apiFetch<ContentIngestResponse>("/api/content/ingest", {
-    method: "POST",
-    body: JSON.stringify({ source_url, source_platform }),
-  });
-}
-
 export function getContent(content_id: string): Promise<Capture> {
-  return apiFetch<Capture>(`/api/content/${content_id}`, { cache: "no-store" });
+  return apiFetch<Capture>(`/api/v1/captures/${content_id}`, { cache: "no-store" });
 }
